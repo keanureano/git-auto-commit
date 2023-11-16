@@ -23,23 +23,27 @@ def save_json(data, file_path):
 
 def cleanup(dataset):
     cleaned_dataset = []
-    for index, data in enumerate(dataset):
+    for data in dataset:
         cleaned_data = {"message": "", "diff": ""}
-
         message = data.get("message", "")
-        print(f"[{index}] Cleaning {message}")
 
+        # Remove colon and brackets at the start of commit messages
         message = message[message.find(":") + 1 :].strip()
         message = message[message.find("]") + 1 :].strip()
         message = message[message.find("]") + 1 :].strip()
+
+        # Keep only the first line of commit message
         message = (
             message[: message.find("\n")].strip()
             if message.find("\n") != -1
             else message.strip()
         )
+
+        # Remove parentheses at the end of commit messages
         message = message[: message.find("(")].strip()
         message = message.lower()
 
+        # Truncate the diff, will filter this later so it doesn't matter if it's truncated
         diff = data.get("diff", "")
         diff = diff[:10000].strip()
 
@@ -59,25 +63,34 @@ def filter(dataset):
         message = data.get("message")
         diff = data.get("diff")
 
-        # Check for empty messages or messages with fewer than specified characters
+        # Check for messages with fewer than specified characters
         if len(message) < 50:
             continue
 
-        # Check if diff is larger than specified characters
+        # Check for large diffs
         if len(diff) > 5000:
             continue
 
         spacy_doc = spacy_nlp(message)
         stanza_doc = stanza_nlp(message)
+        spacy_first = spacy_doc[0]
+        stanza_first = stanza_doc.sentences[0].words[0]
 
         # Check for merge and bump commits
-        if spacy_doc[0].text == "merge" or spacy_doc[0].text == "bump":
+        if spacy_first.text == "merge" or spacy_first.text == "bump":
             continue
 
-        # Check for verb using SpaCy or Stanza
-        if (
-            spacy_doc[0].pos_ != "VERB"
-            or stanza_doc.sentences[0].words[0].upos != "VERB"
+        # Check for verb using spacy
+        if not (
+            spacy_first.pos_ == "VERB" and "Inf" in spacy_first.morph.get("VerbForm")
+        ):
+            continue
+
+        # Check for verb using stanza
+        if not (
+            stanza_first.upos == "VERB"
+            and stanza_first.deprel == "root"
+            and "Mood=Imp" in stanza_first.feats
         ):
             continue
 
