@@ -41,7 +41,7 @@ def cleanup(dataset):
         message = message.lower()
 
         diff = data.get("diff", "")
-        diff = diff[:1000].strip()
+        diff = diff[:8192].strip()
 
         cleaned_data["message"] = message
         cleaned_data["diff"] = diff
