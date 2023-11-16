@@ -1,5 +1,5 @@
 import spacy
-
+import trystanza 
 
 def main():
     messages = [
@@ -8,8 +8,11 @@ def main():
         "Fix: Enable enableUnifiedSyncLane (#27646)",
     ]
     cleaned_messages = cleanup(messages)
-    filtered_messages = filter(cleaned_messages)
-    print(filtered_messages)
+    filtered_messages_spacy = filter_spacy(cleaned_messages)
+    filtered_messages_stanza = filter_stanza(cleaned_messages)
+    
+    print("Filtered Messages (SpaCy):", filtered_messages_spacy)
+    print("Filtered Messages (Stanza):", filtered_messages_stanza)
 
 
 def cleanup(messages):
@@ -23,7 +26,7 @@ def cleanup(messages):
     return cleaned_messages
 
 
-def filter(messages):
+def filter_spacy(messages):
     nlp = spacy.load("en_core_web_sm")
     filtered_messages = []
     for message in messages:
@@ -37,10 +40,31 @@ def filter(messages):
         if doc[0].text == "merge" or doc[0].text == "bump":
             continue
 
-        # Check for verb in either spacy or stanza
-        # if len([token.lemma_ for token in doc if token.pos_ == "VERB"]) < 1
-        # or TODO:
-        # continue
+        # Check for a verb in SpaCy
+        if len([token.lemma_ for token in doc if token.pos_ == "VERB"]) < 1:
+            continue
+
+        filtered_messages.append(message)
+
+    return filtered_messages
+
+
+def filter_stanza(messages):
+    filtered_messages = []
+    for message in messages:
+        doc = trystanza.process_text(message)
+
+        # Check for empty messages or messages with fewer than 50 characters
+        if len(doc.sentences) < 1 or len(message) < 50:
+            continue
+
+        # Check for merge and bump
+        if doc.sentences[0].words[0].text == "merge" or doc.sentences[0].words[0].text == "bump":
+            continue
+
+        # Check for a verb in Stanza
+        if len([word.text for sent in doc.sentences for word in sent.words if word.upos == "VERB"]) < 1:
+            continue
 
         filtered_messages.append(message)
 
