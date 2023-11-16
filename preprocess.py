@@ -24,10 +24,11 @@ def save_json(data, file_path):
 def cleanup(dataset):
     cleaned_dataset = []
     for index, data in enumerate(dataset):
-        print(f"[{index}] Cleaning {message}")
         cleaned_data = {"message": "", "diff": ""}
 
         message = data.get("message", "")
+        print(f"[{index}] Cleaning {message}")
+        
         message = message[message.find(":") + 1 :].strip()
         message = message[message.find("]") + 1 :].strip()
         message = message[message.find("]") + 1 :].strip()
