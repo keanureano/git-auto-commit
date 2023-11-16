@@ -1,4 +1,5 @@
 import json
+import re
 import spacy
 import stanza
 
@@ -27,11 +28,6 @@ def cleanup(dataset):
         cleaned_data = {"message": "", "diff": ""}
         message = data.get("message", "")
 
-        # Remove colon and brackets at the start of commit messages
-        message = message[message.find(":") + 1 :].strip()
-        message = message[message.find("]") + 1 :].strip()
-        message = message[message.find("]") + 1 :].strip()
-
         # Keep only the first line of commit message
         message = (
             message[: message.find("\n")].strip()
@@ -39,13 +35,25 @@ def cleanup(dataset):
             else message.strip()
         )
 
-        # Remove parentheses at the end of commit messages
-        message = message[: message.find("(")].strip()
-        message = message.lower()
+        print("Raw", message)
+
+        # Remove everything up to the first colon
+        message = re.sub(r"^.*?:", "", message)
+
+        # Remove square brackets and their contents
+        message = re.sub(r"\[.*?\]", "", message)
+
+        # Remove parentheses and their contents
+        message = re.sub(r"\(.*?\)", "", message)
+        
+        # Strip and lowercaste message
+        message = message.strip().lower()
 
         # Truncate the diff, will filter this later so it doesn't matter if it's truncated
         diff = data.get("diff", "")
         diff = diff[:10000].strip()
+
+        print("Cleaned", message)
 
         cleaned_data["message"] = message
         cleaned_data["diff"] = diff
