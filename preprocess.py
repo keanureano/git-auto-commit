@@ -6,7 +6,7 @@ import stanza
 def main():
     dataset = load_json("all_commits_facebook_react.json")
     cleaned_dataset = cleanup(dataset)
-    filtered_dataset = filter(cleaned_dataset[:100])
+    filtered_dataset = filter(cleaned_dataset)
     save_json(filtered_dataset, "filtered_commits_facebook_react.json")
 
 
@@ -28,7 +28,7 @@ def cleanup(dataset):
 
         message = data.get("message", "")
         print(f"[{index}] Cleaning {message}")
-        
+
         message = message[message.find(":") + 1 :].strip()
         message = message[message.find("]") + 1 :].strip()
         message = message[message.find("]") + 1 :].strip()
