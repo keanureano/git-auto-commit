@@ -1,18 +1,20 @@
+import json
 import spacy
 import stanza
 
 
 def main():
-    messages = [
-        "Add a feature flag to enable expiration of retry lanes (#27694)",
-        "Bump browserify-sign from 4.0.4 to 4.2.2 in /fixtures/expiration (#27600)",
-        "Fix: Enable enableUnifiedSyncLane (#27646)",
-        "[Float][Fiber] Fixes incorrect boolean logic around loading states",
-    ]
+    data = load_json("all_commits_facebook_react.json")
+    messages = [item["message"] for item in data]
     cleaned_messages = cleanup(messages)
-    filtered_messages = filter(cleaned_messages)
-    print("Cleaned Messages:", cleaned_messages)
-    print("Filtered Messages:", filtered_messages)
+    filtered_messages = filter(cleaned_messages[0:100])
+    print("Filtered Messages:", filtered_messages[0:10])
+
+
+def load_json(file_path):
+    with open(file_path, "r") as json_file:
+        data = json.load(json_file)
+    return data
 
 
 def cleanup(messages):
@@ -21,6 +23,11 @@ def cleanup(messages):
         message = message[message.find(":") + 1 :].strip()
         message = message[message.find("]") + 1 :].strip()
         message = message[message.find("]") + 1 :].strip()
+        message = (
+            message[: message.find("\n")].strip()
+            if message.find("\n") != -1
+            else message.strip()
+        )
         message = message[: message.find("(")].strip()
         message = message.lower()
         cleaned_messages.append(message)
@@ -33,29 +40,23 @@ def filter(messages):
 
     filtered_messages = []
     for message in messages:
-        spacy_doc = spacy_nlp(message)
-        stanza_doc = stanza_nlp(message)
+        print("Filtering", message)
 
         # Check for empty messages or messages with fewer than 50 characters
-        if len(spacy_doc) < 1 or len(message) < 50:
+        if len(message) < 1 or len(message) < 50:
             continue
+
+        spacy_doc = spacy_nlp(message)
+        stanza_doc = stanza_nlp(message)
 
         # Check for merge and bump commits
         if spacy_doc[0].text == "merge" or spacy_doc[0].text == "bump":
             continue
 
-        # Check for atleast 1 verb using SpaCy or Stanza
+        # Check for verb using SpaCy or Stanza
         if (
-            len([token.lemma_ for token in spacy_doc if token.pos_ == "VERB"]) < 1
-            or len(
-                [
-                    word.text
-                    for sent in stanza_doc.sentences
-                    for word in sent.words
-                    if word.upos == "VERB"
-                ]
-            )
-            < 1
+            spacy_doc[0].pos_ != "VERB"
+            or stanza_doc.sentences[0].words[0].upos != "VERB"
         ):
             continue
 
