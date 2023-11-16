@@ -45,7 +45,7 @@ def cleanup(dataset):
 
         # Remove parentheses and their contents
         message = re.sub(r"\(.*?\)", "", message)
-        
+
         # Strip and lowercaste message
         message = message.strip().lower()
 
@@ -66,17 +66,32 @@ def filter(dataset):
     spacy_nlp = spacy.load("en_core_web_sm")
     stanza_nlp = stanza.Pipeline("en")
 
-    filtered_dataset = []
+    filtered_dataset = {
+        "short_messages": [],
+        "large_diffs": [],
+        "bot_commits": [],
+        "non_verbs": [],
+        "non_imperatives": [],
+        "passed": [],
+    }
+
     for index, data in enumerate(dataset):
         message = data.get("message")
         diff = data.get("diff")
 
-        # Check for messages with fewer than specified characters
+        # Check for short messages
         if len(message) < 50:
+            filtered_dataset["short_messages"].append(message)
             continue
 
         # Check for large diffs
-        if len(diff) > 5000:
+        if len(diff) > 2000:
+            filtered_dataset["large_diffs"].append(message)
+            continue
+
+        # Check for bot commits
+        if message.split()[0].lower() in ["merge", "bump"]:
+            filtered_dataset["bot_commits"].append(message)
             continue
 
         spacy_doc = spacy_nlp(message)
@@ -84,26 +99,22 @@ def filter(dataset):
         spacy_first = spacy_doc[0]
         stanza_first = stanza_doc.sentences[0].words[0]
 
-        # Check for merge and bump commits
-        if spacy_first.text == "merge" or spacy_first.text == "bump":
+        # Check for verb
+        if not (spacy_first.pos_ == "VERB" and stanza_first.upos == "VERB"):
+            filtered_dataset["non_verbs"].append(message)
             continue
 
-        # Check for verb using spacy
+        # Check for imperative
         if not (
-            spacy_first.pos_ == "VERB" and "Inf" in spacy_first.morph.get("VerbForm")
-        ):
-            continue
-
-        # Check for verb using stanza
-        if not (
-            stanza_first.upos == "VERB"
+            "Inf" in spacy_first.morph.get("VerbForm")
             and stanza_first.deprel == "root"
             and "Mood=Imp" in stanza_first.feats
         ):
+            filtered_dataset["non_imperatives"].append(message)
             continue
 
         print(f"[{index}] Filtered {message}")
-        filtered_dataset.append(data)
+        filtered_dataset["passed"].append(data)
 
     return filtered_dataset
 
