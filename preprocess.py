@@ -4,11 +4,10 @@ import stanza
 
 
 def main():
-    data = load_json("all_commits_facebook_react.json")
-    messages = [item["message"] for item in data]
-    cleaned_messages = cleanup(messages)
-    filtered_messages = filter(cleaned_messages[0:100])
-    print("Filtered Messages:", filtered_messages[0:10])
+    dataset = load_json("all_commits_facebook_react.json")
+    cleaned_dataset = cleanup(dataset)
+    filtered_dataset = filter(cleaned_dataset[:100])
+    save_json(filtered_dataset, "filtered_commits_facebook_react.json")
 
 
 def load_json(file_path):
@@ -17,9 +16,18 @@ def load_json(file_path):
     return data
 
 
-def cleanup(messages):
-    cleaned_messages = []
-    for message in messages:
+def save_json(data, file_path):
+    with open(file_path, "w") as json_file:
+        json.dump(data, json_file, indent=2)
+
+
+def cleanup(dataset):
+    cleaned_dataset = []
+    for index, data in enumerate(dataset):
+        print(f"[{index}] Cleaning {message}")
+        cleaned_data = {"message": "", "diff": ""}
+
+        message = data.get("message", "")
         message = message[message.find(":") + 1 :].strip()
         message = message[message.find("]") + 1 :].strip()
         message = message[message.find("]") + 1 :].strip()
@@ -30,17 +38,25 @@ def cleanup(messages):
         )
         message = message[: message.find("(")].strip()
         message = message.lower()
-        cleaned_messages.append(message)
-    return cleaned_messages
+
+        diff = data.get("diff", "")
+        diff = diff[:1000].strip()
+
+        cleaned_data["message"] = message
+        cleaned_data["diff"] = diff
+        cleaned_dataset.append(cleaned_data)
+
+    return cleaned_dataset
 
 
-def filter(messages):
+def filter(dataset):
     spacy_nlp = spacy.load("en_core_web_sm")
     stanza_nlp = stanza.Pipeline("en")
 
-    filtered_messages = []
-    for message in messages:
-        print("Filtering", message)
+    filtered_dataset = []
+    for index, data in enumerate(dataset):
+        message = data.get("message")
+        print(f"[{index}] Filtering {message}")
 
         # Check for empty messages or messages with fewer than 50 characters
         if len(message) < 1 or len(message) < 50:
@@ -60,9 +76,9 @@ def filter(messages):
         ):
             continue
 
-        filtered_messages.append(message)
+        filtered_dataset.append(data)
 
-    return filtered_messages
+    return filtered_dataset
 
 
 if __name__ == "__main__":
