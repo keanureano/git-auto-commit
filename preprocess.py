@@ -37,12 +37,9 @@ def filter(messages):
         if doc[0].text == "merge" or doc[0].text == "bump":
             continue
 
-        # Check for verb (spacy)
-        if len([token.lemma_ for token in doc if token.pos_ == "VERB"]) < 1:
-            continue
-
-        ### TODO: Check for verb (stanza)
-        # if ....
+        # Check for verb in either spacy or stanza
+        # if len([token.lemma_ for token in doc if token.pos_ == "VERB"]) < 1
+        # or TODO:
         # continue
 
         filtered_messages.append(message)
