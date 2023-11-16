@@ -64,7 +64,7 @@ def filter(dataset):
             continue
 
         # Check if diff is larger than specified characters
-        if len(diff) < 5000:
+        if len(diff) > 5000:
             continue
 
         spacy_doc = spacy_nlp(message)
