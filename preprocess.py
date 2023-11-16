@@ -57,10 +57,14 @@ def filter(dataset):
     filtered_dataset = []
     for index, data in enumerate(dataset):
         message = data.get("message")
-        print(f"[{index}] Filtering {message}")
+        diff = data.get("diff")
 
-        # Check for empty messages or messages with fewer than 50 characters
-        if len(message) < 1 or len(message) < 50:
+        # Check for empty messages or messages with fewer than specified characters
+        if len(message) < 50:
+            continue
+
+        # Check if diff is larger than specified characters
+        if len(diff) < 4096:
             continue
 
         spacy_doc = spacy_nlp(message)
@@ -77,6 +81,7 @@ def filter(dataset):
         ):
             continue
 
+        print(f"[{index}] Filtered {message}")
         filtered_dataset.append(data)
 
     return filtered_dataset
