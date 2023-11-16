@@ -1,5 +1,6 @@
 import spacy
-import trystanza 
+import stanza
+
 
 def main():
     messages = [
@@ -8,11 +9,9 @@ def main():
         "Fix: Enable enableUnifiedSyncLane (#27646)",
     ]
     cleaned_messages = cleanup(messages)
-    filtered_messages_spacy = filter_spacy(cleaned_messages)
-    filtered_messages_stanza = filter_stanza(cleaned_messages)
-    
-    print("Filtered Messages (SpaCy):", filtered_messages_spacy)
-    print("Filtered Messages (Stanza):", filtered_messages_stanza)
+    filtered_messages = filter(cleaned_messages)
+
+    print("Filtered Messages:", filtered_messages)
 
 
 def cleanup(messages):
@@ -26,44 +25,36 @@ def cleanup(messages):
     return cleaned_messages
 
 
-def filter_spacy(messages):
-    nlp = spacy.load("en_core_web_sm")
+def filter(messages):
+    spacy_nlp = spacy.load("en_core_web_sm")
+    stanza_nlp = stanza.Pipeline("en")
+
     filtered_messages = []
     for message in messages:
-        doc = nlp(message)
+        spacy_doc = spacy_nlp(message)
+        stanza_doc = stanza_nlp(message)
 
         # Check for empty messages or messages with fewer than 50 characters
-        if len(doc) < 1 or len(message) < 50:
+        if len(spacy_doc) < 1 or len(message) < 50:
             continue
 
-        # Check for merge and bump
-        if doc[0].text == "merge" or doc[0].text == "bump":
+        # Check for merge and bump commits
+        if spacy_doc[0].text == "merge" or spacy_doc[0].text == "bump":
             continue
 
-        # Check for a verb in SpaCy
-        if len([token.lemma_ for token in doc if token.pos_ == "VERB"]) < 1:
-            continue
-
-        filtered_messages.append(message)
-
-    return filtered_messages
-
-
-def filter_stanza(messages):
-    filtered_messages = []
-    for message in messages:
-        doc = trystanza.process_text(message)
-
-        # Check for empty messages or messages with fewer than 50 characters
-        if len(doc.sentences) < 1 or len(message) < 50:
-            continue
-
-        # Check for merge and bump
-        if doc.sentences[0].words[0].text == "merge" or doc.sentences[0].words[0].text == "bump":
-            continue
-
-        # Check for a verb in Stanza
-        if len([word.text for sent in doc.sentences for word in sent.words if word.upos == "VERB"]) < 1:
+        # Check for atleast 1 verb using SpaCy or Stanza
+        if (
+            len([token.lemma_ for token in spacy_doc if token.pos_ == "VERB"]) < 1
+            or len(
+                [
+                    word.text
+                    for sent in stanza_doc.sentences
+                    for word in sent.words
+                    if word.upos == "VERB"
+                ]
+            )
+            < 1
+        ):
             continue
 
         filtered_messages.append(message)
