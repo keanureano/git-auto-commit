@@ -41,7 +41,7 @@ def cleanup(dataset):
         message = message.lower()
 
         diff = data.get("diff", "")
-        diff = diff[:4096].strip()
+        diff = diff[:10000].strip()
 
         cleaned_data["message"] = message
         cleaned_data["diff"] = diff
@@ -64,7 +64,7 @@ def filter(dataset):
             continue
 
         # Check if diff is larger than specified characters
-        if len(diff) < 4096:
+        if len(diff) < 5000:
             continue
 
         spacy_doc = spacy_nlp(message)
