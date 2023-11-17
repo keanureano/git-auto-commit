@@ -67,11 +67,12 @@ def filter(dataset):
     stanza_nlp = stanza.Pipeline("en")
 
     filtered_dataset = {
-        "short_messages": [],
-        "large_diffs": [],
+        "empty_messages": [],
         "bot_commits": [],
+        "short_messages": [],
         "non_verbs": [],
         "non_imperatives": [],
+        "large_diffs": [],
         "passed": [],
     }
 
@@ -79,19 +80,22 @@ def filter(dataset):
         message = data.get("message")
         diff = data.get("diff")
 
+        # Check for empty messages
+        if not message.strip():
+            filtered_dataset["empty_messages"].append(message)
+            print(f"[{index}] Empty Message: {message}")
+            continue
+
         # Check for bot commits
         if message.split()[0] in ["merge", "bump"]:
             filtered_dataset["bot_commits"].append(message)
+            print(f"[{index}] Bot Commit: {message}")
             continue
 
         # Check for short messages
         if len(message) < 50:
             filtered_dataset["short_messages"].append(message)
-            continue
-
-        # Check for large diffs
-        if len(diff) > 2000:
-            filtered_dataset["large_diffs"].append(message)
+            print(f"[{index}] Short Message: {message}")
             continue
 
         spacy_doc = spacy_nlp(message)
@@ -102,17 +106,31 @@ def filter(dataset):
         # Check for verb
         if not (spacy_first.pos_ == "VERB" or stanza_first.upos == "VERB"):
             filtered_dataset["non_verbs"].append(message)
+            print(f"[{index}] Non Verb: {message}")
             continue
 
         # Check for imperative
         if not (
             "Inf" in spacy_first.morph.get("VerbForm")
-            or any(feat in stanza_first.feats for feat in ["Mood=Imp", "VerbForm=Inf"])
+            or (
+                stanza_first.deprel == "root"
+                and stanza_first.feats is not None
+                and any(
+                    feat in stanza_first.feats for feat in ["Mood=Imp", "VerbForm=Inf"]
+                )
+            )
         ):
             filtered_dataset["non_imperatives"].append(message)
+            print(f"[{index}] Non Imperative: {message}")
             continue
 
-        print(f"[{index}] Filtered {message}")
+        # Check for large diffs
+        if len(diff) > 2000:
+            filtered_dataset["large_diffs"].append(message)
+            print(f"[{index}] Large Diff: {message}")
+            continue
+
+        print(f"[{index}] [PASSED]: {message}")
         filtered_dataset["passed"].append(data)
 
     return filtered_dataset
