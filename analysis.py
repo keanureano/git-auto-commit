@@ -44,19 +44,20 @@ def plot_first_word_frequency(dataset):
     plt.pie(counts, labels=labels, autopct="%1.1f%%", startangle=140)
     plt.axis("equal")
     plt.title(
-        f"Top {top_frequency_count} Frequencies of First Words in Commit Messages"
+        f"Top {top_frequency_count + 1} First Words in Commit Messages"
     )
 
 
 def plot_category_distribution(dataset):
     categories_count = {}
+    total_count = 0
 
     # Iterate through messages to identify unique categories
-    for category in dataset:
-        if category:
-            categories_count.setdefault(category, 0)
-        for _ in category:
-            categories_count[category] = categories_count.get(category, 0) + 1
+    for key, value in dataset.items():
+        for _ in value:
+            categories_count.setdefault(key, 0)
+            categories_count[key] += 1
+            total_count += 1
 
     labels = list(categories_count.keys())
     counts = list(categories_count.values())
@@ -64,7 +65,7 @@ def plot_category_distribution(dataset):
     plt.figure()
     plt.pie(counts, labels=labels, autopct="%1.1f%%", startangle=140)
     plt.axis("equal")
-    plt.title("Distribution of Message Categories")
+    plt.title(f"Distribution of Commit Messages ({total_count} Commits)")
 
 
 if __name__ == "__main__":
