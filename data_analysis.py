@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    dataset = load_json("filtered_commits.json")
+    dataset = load_json("raw_data/filtered_commits.json")
     plot_first_word_frequency(dataset)
     plot_category_distribution(dataset)
     plt.show()

@@ -5,7 +5,7 @@ from collections import defaultdict
 
 
 def main():
-    verify_dataset("train.jsonl")
+    verify_dataset("training_data/train.jsonl")
 
 
 def verify_dataset(data_path):

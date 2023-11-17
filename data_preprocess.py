@@ -5,7 +5,7 @@ import stanza
 
 
 def main():
-    dataset = load_json("all_commits.json")
+    dataset = load_json("raw_data/all_commits.json")
     cleaned_dataset = cleanup(dataset)
     filtered_dataset = filter(cleaned_dataset)
     save_json(filtered_dataset, "filtered_commits.json")

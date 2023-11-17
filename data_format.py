@@ -3,7 +3,7 @@ import random
 
 
 def main():
-    dataset = load_json("filtered_commits.json")
+    dataset = load_json("raw_data/filtered_commits.json")
 
     # Grab the commit messages that passed the filter, randomize after
     dataset = dataset.get("passed")
