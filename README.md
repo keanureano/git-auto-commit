@@ -41,7 +41,7 @@ GAC is a command-line interface (CLI) application that explores and compares thr
 
   ```
   function gac {
-     py "FILE_PATH" $args
+     python "FILE_PATH" $args
   }
   ```
 
@@ -63,5 +63,5 @@ For additional options and information, you can run:
 ```
 gac --help
 or
-py gac.py --help
+python gac.py --help
 ```
