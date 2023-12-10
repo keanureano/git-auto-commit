@@ -29,7 +29,10 @@ GAC is a command-line interface (CLI) application that explores and compares thr
   ```
   echo $PWD\gac.py
   ```
-- Copy the displayed path.
+- Copy the displayed path. It should look something like this:
+   ```
+   C:\...\...\gac.py
+   ```
 - Type the following command to open your PowerShell profile for editing:
   ```
   code $PROFILE
