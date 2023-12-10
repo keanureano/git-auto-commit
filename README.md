@@ -30,26 +30,38 @@ GAC is a command-line interface (CLI) application that explores and compares thr
   echo $PWD\gac.py
   ```
 - Copy the displayed path. It should look something like this:
-   ```
-   C:\...\...\gac.py
-   ```
+  ```
+  C:\...\...\gac.py
+  ```
 - Type the following command to open your PowerShell profile for editing:
   ```
   code $PROFILE
   ```
 - Add the following function to the profile, replacing `FILE_PATH` with the copied path:
 
-```
-function gac {
-    py "FILE_PATH" $args
-}
-```
+  ```
+  function gac {
+     py "FILE_PATH" $args
+  }
+  ```
 
 - Save changes to the file.
 - Restart VSCode.
 - Now, you can run the application using the gac command in VSCode from any directory.
 
+## Usage
+
+Run the following commands to add a file and generate a comimt:
+
 ```
 git add <file>
-gac
+gac <-b, -e, -f, -c>
+```
+
+For additional options and information, you can run:
+
+```
+gac --help
+or
+py gac.py --help
 ```
