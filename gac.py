@@ -18,13 +18,19 @@ def main():
     generateCommitMessageLoop(diff)
 
 
-def loadEnvVariables(file_path=".env"):
+def loadEnvVariables():
     """
     Load environment variables from a file.
     """
 
+    # Get the absolute path of the currently executing script
+    script_path = os.path.abspath(__file__)
+
+    #   Get the directory containing the script
+    env_path = f"{os.path.dirname(script_path)}\.env"
+
     try:
-        with open(file_path) as f:
+        with open(env_path) as f:
             for line in f:
                 if "=" in line:
                     key, value = map(str.strip, line.split("=", 1))
@@ -32,7 +38,7 @@ def loadEnvVariables(file_path=".env"):
 
     except FileNotFoundError:
         raise FileNotFoundError(
-            f"{file_path} not found. Create a '.env' file and set OPENAI_API_KEY."
+            f"{env_path} not found. Create a '.env' file and set OPENAI_API_KEY."
         )
 
 
