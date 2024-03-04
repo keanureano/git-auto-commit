@@ -7,72 +7,57 @@ def main():
     finetuned_dataset = load_dataset("finetuned_model_results")
     prompt_engineered_dataset = load_dataset("prompt_engineered_model_results")
 
-    base_filtered_dataset, base_failed_dataset, base_total_ratio = apply_filters(base_dataset, "candidate")
-    finetuned_filtered_dataset, finetuned_failed_dataset, finetuned_total_ratio = apply_filters(finetuned_dataset, "candidate")
-    prompt_engineered_filtered_dataset, prompt_engineered_failed_dataset, prompt_engineered_total_ratio = apply_filters(prompt_engineered_dataset, "candidate")
+    base_filtered, base_failed, base_total_ratio = apply_filters(base_dataset, "candidate")
+    finetuned_filtered, finetuned_failed, finetuned_total_ratio = apply_filters(finetuned_dataset, "candidate")
+    prompt_engineered_filtered, prompt_engineered_failed, prompt_engineered_total_ratio = apply_filters(prompt_engineered_dataset, "candidate")
 
-    print(f"Base Total Ratio: {base_total_ratio:.1%}")
-    print(f"Fine-tuned Total Ratio: {finetuned_total_ratio:.1%}")
-    print(f"Prompt Engineered Total Ratio: {prompt_engineered_total_ratio:.1%}")
+    print_total_ratio("Base", base_total_ratio)
+    print_total_ratio("Fine-tuned", finetuned_total_ratio)
+    print_total_ratio("Prompt Engineered", prompt_engineered_total_ratio)
 
-    plot_pie_chart(
-        "Base",
-        ["Base Passed", "Base Failed"],
-        [len(base_filtered_dataset), len(base_failed_dataset)]
-    )
-
-    plot_pie_chart(
-        "Fine-tuned",
-        ["Fine-tuned Passed", "Fine-tuned Failed"],
-        [len(finetuned_filtered_dataset), len(finetuned_failed_dataset)]
-    )
-
-    plot_pie_chart(
-        "Prompt Engineered",
-        ["Prompt Engineered Passed", "Prompt Engineered Failed"],
-        [len(prompt_engineered_filtered_dataset), len(prompt_engineered_failed_dataset)]
-    )
+    plot_pie_chart("Base", base_filtered, base_failed)
+    plot_pie_chart("Fine-tuned", finetuned_filtered, finetuned_failed)
+    plot_pie_chart("Prompt Engineered", prompt_engineered_filtered, prompt_engineered_failed)
 
 def load_dataset(data_path):
     with open(f"test_results/{data_path}.jsonl", "r", encoding="utf-8") as f:
-        dataset = [json.loads(line) for line in f]
-    return dataset
+        return [json.loads(line) for line in f]
 
 def apply_filters(dataset, key):
     spacy_nlp = spacy.load("en_core_web_sm")
 
-    filtered_dataset = []
-    failed_dataset = []
+    filtered, failed = [], []
     for data in dataset:
-        # Retained Spacy filters for 'candidate'
-        if spacy_filter(data.get(key, ""), spacy_nlp) and len(data.get(key, "")) >= 50:
-            filtered_dataset.append(data)
+        if is_valid_data(data.get(key, ""), spacy_nlp, key):
+            filtered.append(data)
         else:
-            failed_dataset.append(data)
+            failed.append(data)
 
-    total_ratio = len(filtered_dataset) / len(dataset)
-    return filtered_dataset, failed_dataset, total_ratio
+    total_ratio = len(filtered) / len(dataset)
+    return filtered, failed, total_ratio
 
-def spacy_filter(text, spacy_nlp):
+def is_valid_data(text, spacy_nlp, key):
     spacy_doc = spacy_nlp(text)
 
-    # Check if the Spacy document is not empty
     if spacy_doc and len(spacy_doc) > 0:
         spacy_first = spacy_doc[0]
-
-        # Retained Spacy filters: Include only samples where the first word is a verb and the message is imperative
         return spacy_first.pos_ == "VERB" and (
             "Inf" in spacy_first.morph.get("VerbForm") or (
                 spacy_first.dep_ == "ROOT" and spacy_first.morph.get("Mood") == "Imp"
             )
-        )
+        ) and len(text) >= 50
     else:
-        # Return False if the document is empty
         return False
 
-def plot_pie_chart(model_name, labels, sizes):
+def print_total_ratio(model_name, total_ratio):
+    print(f"{model_name} Total Ratio: {total_ratio:.1%}")
+
+def plot_pie_chart(model_name, filtered_dataset, failed_dataset):
+    sizes = [len(filtered_dataset), len(failed_dataset)]
+    labels = [f"{model_name} Passed", f"{model_name} Failed"]
+
     plt.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90, colors=['green', 'red'])
-    plt.axis("equal")  # Equal aspect ratio ensures that pie is drawn as a circle.
+    plt.axis("equal")
     plt.title(f"Items Passed and Failed the Filter - {model_name}")
     plt.show()
 
