@@ -69,7 +69,7 @@ def generateCommitMessageLoop(diff):
         print("\nGenerated Commit Message:\n", commitMessage)
 
         action = input(
-            "Do you want to commit this message? (Y)es, (N)o, (R)etry, (E)dit Message, (M)odify Prompt: "
+            "Do you want to commit this message? (Y)es, (N)o, (R)etry, (E)dit, (M)odify Prompt: "
         ).upper()
 
         if action == "Y":
@@ -78,13 +78,17 @@ def generateCommitMessageLoop(diff):
         elif action == "N":
             break  # Exit the loop and program
         elif action == "R":
+            modifiedInstruction = None
             continue  # Retry the loop
         elif action == "E":
             editedMessage = inputWithPrefill(commitMessage)
             gitCommit(editedMessage)
             break  # Edit message
         elif action == "M":
-            instruction = selectGptInstruction()
+            if modifiedInstruction is None:
+                instruction = selectGptInstruction()
+            else:
+                instruction = modifiedInstruction
             modifiedInstruction = inputWithPrefill(instruction)
             continue  # Modify instruction
         else:
