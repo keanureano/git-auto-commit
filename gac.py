@@ -63,17 +63,18 @@ def generateCommitMessageLoop(diff):
     """
     Generate commit messages in a loop based on user input.
     """
+    modifiedInstruction = None
     while True:
-        commitMessage = generateCommitMessage(diff)
+        commitMessage = generateCommitMessage(diff, modifiedInstruction)
         print("\nGenerated Commit Message:\n", commitMessage)
 
         action = input(
-            "Do you want to commit this message? (Y)es, (N)o, (R)etry, (E)dit: "
+            "Do you want to commit this message? (Y)es, (N)o, (R)etry, (E)dit Message, (M)odify Prompt: "
         ).upper()
 
         if action == "Y":
             gitCommit(commitMessage)
-            break
+            break  # Commit the message
         elif action == "N":
             break  # Exit the loop and program
         elif action == "R":
@@ -81,18 +82,26 @@ def generateCommitMessageLoop(diff):
         elif action == "E":
             editedMessage = inputWithPrefill(commitMessage)
             gitCommit(editedMessage)
-            break
+            break  # Edit message
+        elif action == "M":
+            instruction = selectGptInstruction()
+            modifiedInstruction = inputWithPrefill(instruction)
+            continue  # Modify instruction
         else:
-            print("Invalid option. Please enter 'Y', 'N', 'R', 'E'.")
+            print("Invalid option. Please enter 'Y', 'N', 'R', 'E', 'M'.")
 
 
-def generateCommitMessage(diff):
+def generateCommitMessage(diff, modifiedInstruction=None):
     """
     Generate a commit message using GPT with the specified instruction, model, and diff logs.
     Returns the generated commit message.
     """
 
-    instruction = selectGptInstruction()
+    if modifiedInstruction is None:
+        instruction = selectGptInstruction()
+    else:
+        instruction = modifiedInstruction
+
     model = selectGptModel()
 
     prompt = [
