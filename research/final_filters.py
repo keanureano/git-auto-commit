@@ -55,7 +55,7 @@ def plot_pie_chart(model_name, filtered_dataset, failed_dataset):
 
     plt.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90, colors=['green', 'red'])
     plt.axis("equal")
-    plt.title("Prompts Passed and Failed the Filter ( N Total )")
+    plt.title("Prompts Passed and Failed the Filter ( 225 Total )")
 
     # Add legend
     plt.legend(["Passed", "Failed"], loc="upper right")
