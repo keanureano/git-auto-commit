@@ -1,5 +1,6 @@
 import json
 import spacy
+import stanza
 import matplotlib.pyplot as plt
 
 def main():
@@ -25,10 +26,11 @@ def load_dataset(data_path):
 
 def apply_filters(dataset, key):
     spacy_nlp = spacy.load("en_core_web_sm")
+    stanza_nlp = stanza.Pipeline("en")  
 
     filtered, failed = [], []
-    for data in dataset:
-        if is_valid_data(data.get(key, ""), spacy_nlp, key):
+    for index, data in enumerate(dataset):
+        if is_valid_data(data.get(key, ""), spacy_nlp, stanza_nlp, key, index):
             filtered.append(data)
         else:
             failed.append(data)
@@ -36,17 +38,24 @@ def apply_filters(dataset, key):
     total_ratio = len(filtered) / len(dataset)
     return filtered, failed, total_ratio
 
-def is_valid_data(text, spacy_nlp, key):
+def is_valid_data(text, spacy_nlp, stanza_nlp, key, index):
     spacy_doc = spacy_nlp(text)
+    stanza_doc = stanza_nlp(text)
 
-    if spacy_doc and len(spacy_doc) > 0:
+    if spacy_doc and stanza_doc and len(spacy_doc) > 0 and len(stanza_doc.sentences) > 0:
         spacy_first = spacy_doc[0]
-        return spacy_first.pos_ == "VERB" and (
+        stanza_first = stanza_doc.sentences[0].words[0]
+
+        # Check for verb using spaCy and Stanza
+        return (
+            spacy_first.pos_ == "VERB" or stanza_first.upos == "VERB"
+        ) and (
             "Inf" in spacy_first.morph.get("VerbForm") or (
                 spacy_first.dep_ == "ROOT" and spacy_first.morph.get("Mood") == "Imp"
             )
-        ) and len(text) >= 50
+        )
     else:
+        print(f"[{index}] Failed to process: {text}")
         return False
 
 def print_total_ratio(model_name, total_ratio):
