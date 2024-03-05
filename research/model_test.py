@@ -5,7 +5,7 @@ from openai import APITimeoutError, OpenAI
 
 
 prompt_engineered_text = """
-Given a user-provided Git diff, generate a concise commit message summarizing the changes.
+Given a user-provided Git diff, generate a concise commit message summarizing and reasoning the changes.
 Follow the pattern: <action> <module/functionality> <details>.
 Use all lowercase letters, use imperative action verbs, write just one line of commit message and nothing else.
 """
