@@ -1,6 +1,10 @@
 # (GAC) Git Auto Commit
 
-GAC is a command-line interface (CLI) application that explores and compares three transformer model-based techniques for automated commit message generation. The techniques include utilizing the Base model, Fine-tuning, and Prompt engineering, with the overarching goal of streamlining the commit message generation process and enhancing software development workflows.
+Git Auto Commit is a Command Line Interface (CLI) application developed as part of our Computer Science thesis, designed to automate the generation of commit messages for software developers.
+
+Leveraging large language models, the program extracts differential (diff) data from code changes, generates natural language commit messages, and automates the commit execution process. Data collection involves retrieving data from Facebook’s React repository via GitHub API, followed by a cleaning and filtering process to ensure data accuracy. Through testing, the application demonstrates its effectiveness and accuracy across various scenarios.
+
+Key findings highlight the successful integration of large language model techniques, with a comparative analysis revealing the strengths and limitations of base, fine-tuned, and prompt-engineered models. The study concludes with recommendations for future research, emphasizing the exploration of lightweight large language models, newer evaluation techniques, and alternative deployment strategies to enhance codebase management systems.
 
 ## Installation
 
